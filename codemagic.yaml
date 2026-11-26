@@ -1,0 +1,43 @@
+# Codemagic — Mac 없이 iOS 앱을 빌드해 App Store Connect(TestFlight)에 올림
+# 준비(한 번): Codemagic 팀 설정 → Integrations → "Developer Portal"에 App Store Connect API 키를 'stylepeek_asc' 이름으로 연결
+workflows:
+  ios-appstore:
+    name: Today's Stylepeek iOS
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: stylepeek_asc
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.ylcompany.stylepeek
+      node: 20
+      xcode: latest
+      vars:
+        APP_REPO: https://github.com/choisunfriend/haircut-helper-app.git
+    triggering:
+      events: []        # 수동 실행(Start new build)
+    scripts:
+      - name: 배포 레포 가져오기
+        script: git clone --depth 1 "$APP_REPO" ../haircut-helper-app
+      - name: 패키지 설치
+        script: npm ci --legacy-peer-deps
+      - name: www 만들기(라이브러리·글꼴·모델을 앱 안으로)
+        script: node scripts/prepare-www.mjs ../haircut-helper-app
+      - name: Capacitor 동기화
+        script: npx cap sync ios
+      - name: 서명 설정
+        script: xcode-project use-profiles
+      - name: 빌드 번호 올리기
+        script: |
+          cd ios/App
+          agvtool new-version -all $(($(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0) + 1)) || agvtool new-version -all $BUILD_NUMBER
+      - name: IPA 빌드
+        script: xcode-project build-ipa --project ios/App/App.xcodeproj --scheme App
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        submit_to_app_store: false

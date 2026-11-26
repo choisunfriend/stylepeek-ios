@@ -1,0 +1,10 @@
+{
+  "appId": "com.ylcompany.stylepeek",
+  "appName": "Today's Stylepeek",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "allowsLinkPreview": false,
+    "limitsNavigationsToAppBoundDomains": false
+  }
+}
