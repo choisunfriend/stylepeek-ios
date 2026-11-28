@@ -41,6 +41,7 @@ REWRITE.unshift(['https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.9/wa
 REWRITE.push(["import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.9')", "import('./vendor/mediapipe/vision_bundle.mjs')"]);
 
 fs.copyFileSync(path.join(ROOT, 'scripts', 'native-save.js'), path.join(V, 'native-save.js'));
+fs.copyFileSync(path.join(ROOT, 'scripts', 'native-auth.js'), path.join(V, 'native-auth.js'));
 
 // ---- 글꼴 ----
 const FD = path.join(V, 'fonts'); fs.mkdirSync(FD, { recursive: true });
@@ -95,7 +96,7 @@ for (const f of files) {
     // 심사 모드 끄기(결제·구매 링크·위치를 그대로 보여 줌)
     s = s.replace('<head>', '<head><script>window.APP_REVIEW={on:false};</script>');
     // 사진 저장 → iOS 공유 시트(내 사진 앱에 저장)
-    s = s.replace('</body>', '<script src="vendor/native-save.js"></script></body>');
+    s = s.replace('</body>', '<script src="vendor/native-save.js"></script><script src="vendor/native-auth.js"></script></body>');
   }
   if (selfieOk) s = s.split("{'runtime':'tfjs','modelType':'general'}").join("{'runtime':'tfjs','modelType':'general','modelUrl':'vendor/models/selfie/model.json'}");
   if (s !== o) { fs.writeFileSync(f, s); n++; }
